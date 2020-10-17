@@ -1,7 +1,6 @@
 package com.felipesouza.analitico.batch.step;
 
-import java.io.FileWriter;
-
+import com.felipesouza.analitico.model.Lote;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
@@ -15,7 +14,9 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
-import com.felipesouza.analitico.model.Lote;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 @Component
 @StepScope
@@ -29,8 +30,7 @@ public class CriaArquivoStep implements Tasklet, StepExecutionListener{
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext ) throws Exception {
 		StepExecution stepExecution = contribution.getStepExecution();
 		StringBuilder sb = new StringBuilder();
-		
-		
+
 		Lote lote = (Lote) stepExecution.getJobExecution().getExecutionContext().get("LOTE");
 		sb.append("Quantidade de clientes no arquivo de entrada: " + lote.getClientes().size() + "\r\n");
 		sb.append("Quantidade de vendedores no arquivo de entrada: " + lote.getVendedores().size() + "\r\n");
@@ -43,10 +43,11 @@ public class CriaArquivoStep implements Tasklet, StepExecutionListener{
 		myWriter.close();
 		return RepeatStatus.FINISHED;
 	}
-	
-	private void renomeiaArquivoDeEntrada(String pathIn) {
-		Resource resource = patternResolver.getResource(pathIn);
-		resource.getFilename().replace(".txt", ".processado");
+
+	private void renomeiaArquivoDeEntrada(String pathIn) throws IOException, IOException {
+		Resource resource = patternResolver.getResource("file:/" + pathIn);
+		File file = resource.getFile();
+		file.renameTo(new File(file.getAbsolutePath().replace(".txt", ".processado")));
 	}
 
 	@Override

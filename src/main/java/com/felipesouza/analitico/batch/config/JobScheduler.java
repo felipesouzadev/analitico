@@ -1,7 +1,5 @@
 package com.felipesouza.analitico.batch.config;
 
-
-
 import java.io.IOException;
 
 import org.springframework.batch.core.Job;
@@ -31,29 +29,27 @@ public class JobScheduler {
 	
 	@Autowired
 	JobLauncher jobLauncher;
-	
-	@Value("${inputPath}")
-	private String entrada;
+
+	private String path = System.getProperty("user.home");
 	
 	private ResourcePatternResolver patternResolver;
 	
 	public JobScheduler() {
 		patternResolver = new PathMatchingResourcePatternResolver();
 	}
-	
-	
+
 	@Scheduled(fixedRate = 120000)
 	public void perform() throws IOException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException {		
-		Resource[] resources = patternResolver.getResources(entrada+"*.txt");
+		Resource[] resources = patternResolver.getResources("file:/"+path+"/data/in/*.txt");
+
 		if(ObjectUtils.isEmpty(resources)) {
 			return;
 		}
+
 		JobParameters params = new JobParametersBuilder()
 				.addString("resourceEntrada", resources[0].getFile().getPath())
 				.toJobParameters();
-		
+
 		jobLauncher.run(analisaJob , params);
-		
-				
 	}
 }
